@@ -39,7 +39,7 @@ func configs(c config) (string, string, KnnQueryOptions) {
 			OrgTblIdName:     "a",
 			OrgTblPkName:     "__mo_fake_pk_col",
 			OrgTblVecIdxName: "idx6",
-			ProbeVal:         3,
+			ProbeVal:         10,
 			K:                100,
 			Normalize:        true,
 		}
@@ -52,11 +52,11 @@ func configs(c config) (string, string, KnnQueryOptions) {
 func main() {
 	queryFilePath, expectedFilePath, knnQueryOptions := configs(tenK)
 
-	vecf32List, err := readInputVectors(queryFilePath)
+	vecf32List, err := readFVecsFile(queryFilePath)
 	if err != nil {
 		panic(err)
 	}
-	expectedSliceList, err := readExpectedOutputIndexes(expectedFilePath)
+	expectedSliceList, err := readIVecsFile(expectedFilePath)
 	if err != nil {
 		panic(err)
 	}
