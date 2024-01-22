@@ -25,6 +25,19 @@ func buildKnnQueryTemplate(inputVectorVal []float32, options KnnQueryOptions) st
 	orgTblName := options.OrgTblName
 	orgTblSkName := options.OrgTblSkName
 	orgTblIdName := options.OrgTblIdName
+	k := options.K
+	inputVectorStr := "[" + strings.Trim(strings.Replace(fmt.Sprint(inputVectorVal), " ", ", ", -1), "[]") + "]"
+
+	getOriginalTblVectorQuery := fmt.Sprintf("SELECT `%s` FROM `%s`.`%s` ORDER BY l2_distance(`%s`, \"%s\") ASC LIMIT %d", orgTblIdName, dbName, orgTblName, orgTblSkName, inputVectorStr, k)
+
+	return getOriginalTblVectorQuery
+}
+
+func buildKnnQueryTemplateWithIVFFlat(inputVectorVal []float32, options KnnQueryOptions) string {
+	dbName := options.DbName
+	orgTblName := options.OrgTblName
+	orgTblSkName := options.OrgTblSkName
+	orgTblIdName := options.OrgTblIdName
 	orgTblPkName := options.OrgTblPkName
 	orgTblVecIdxName := options.OrgTblVecIdxName
 	probeVal := options.ProbeVal

@@ -63,7 +63,8 @@ func main() {
 
 	failures := 0
 	for i, vecf32 := range vecf32List {
-		sql := buildKnnQueryTemplate(vecf32, knnQueryOptions)
+		//sql := buildKnnQueryTemplate(vecf32, knnQueryOptions)
+		sql := buildKnnQueryTemplateWithIVFFlat(vecf32, knnQueryOptions)
 		actualIndexes, _, err := executeKnnQuery("a", sql)
 		if err != nil {
 			panic(err)
