@@ -18,6 +18,11 @@ type KnnQueryOptions struct {
 	ProbeVal         int
 	K                int
 	Normalize        bool
+
+	OverrideIndexTables bool
+	MetadataTableName   string
+	CentroidsTableName  string
+	EntriesTableName    string
 }
 
 func buildKnnQueryTemplate(inputVectorVal []float32, options KnnQueryOptions) string {
@@ -58,7 +63,7 @@ func buildKnnQueryTemplateWithIVFFlat(inputVectorVal []float32, options KnnQuery
 	if options.Normalize {
 		l2DistanceArg2 = "normalize_l2(\"%s\")"
 	} else {
-		l2DistanceArg2 = "%s"
+		l2DistanceArg2 = "\"%s\""
 	}
 
 	getCentroidsQuery := fmt.Sprintf("SELECT `__mo_index_centroid_id` FROM `%s`.`%s` WHERE `__mo_index_centroid_version`=%s ORDER BY l2_distance(`__mo_index_centroid`, "+l2DistanceArg2+" ) ASC LIMIT %d", dbName, idxCentroidsTblName, centroidVersion, inputVectorStr, probeVal)

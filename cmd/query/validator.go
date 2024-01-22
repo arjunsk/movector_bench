@@ -8,7 +8,8 @@ type config int
 
 const (
 	tenK config = iota
-	million
+	million128
+	million1k
 )
 
 func configs(c config) (string, string, KnnQueryOptions) {
@@ -25,11 +26,11 @@ func configs(c config) (string, string, KnnQueryOptions) {
 			OrgTblIdName:     "a",
 			OrgTblPkName:     "__mo_fake_pk_col",
 			OrgTblVecIdxName: "idx5",
-			ProbeVal:         10,
+			ProbeVal:         3,
 			K:                100,
 			Normalize:        true,
 		}
-	case million:
+	case million1k:
 		queryFilePath = "/Users/arjunsunilkumar/Downloads/benchmark/1million/gist/gist_query.fvecs"
 		expectedFilePath = "/Users/arjunsunilkumar/Downloads/benchmark/1million/gist/gist_groundtruth.ivecs"
 		knnQueryOptions = KnnQueryOptions{
@@ -42,7 +43,27 @@ func configs(c config) (string, string, KnnQueryOptions) {
 			ProbeVal:         10,
 			K:                100,
 			Normalize:        true,
+
+			OverrideIndexTables: true,
+			MetadataTableName:   "__mo_index_secondary_018d2a69-37b7-77a1-8387-72d82c3e62d7",
+			CentroidsTableName:  "__mo_index_secondary_018d2a69-37b7-7e44-a218-5c5664d1a932",
+			EntriesTableName:    "__mo_index_secondary_018d2a69-37b7-7b52-8eaf-46847ebafad9",
 		}
+	case million128:
+		queryFilePath = "/Users/arjunsunilkumar/Downloads/benchmark/1million128/sift/sift_query.fvecs"
+		expectedFilePath = "/Users/arjunsunilkumar/Downloads/benchmark/1million128/sift/sift_groundtruth.ivecs"
+		knnQueryOptions = KnnQueryOptions{
+			DbName:           "a",
+			OrgTblName:       "t3",
+			OrgTblSkName:     "b",
+			OrgTblIdName:     "a",
+			OrgTblPkName:     "__mo_fake_pk_col",
+			OrgTblVecIdxName: "idx8",
+			ProbeVal:         1,
+			K:                100,
+			Normalize:        true,
+		}
+
 	default:
 		panic("invalid config")
 	}
@@ -50,7 +71,8 @@ func configs(c config) (string, string, KnnQueryOptions) {
 }
 
 func main() {
-	queryFilePath, expectedFilePath, knnQueryOptions := configs(tenK)
+	queryFilePath, expectedFilePath, knnQueryOptions := configs(million128)
+	withIndex := true
 
 	vecf32List, err := readFVecsFile(queryFilePath)
 	if err != nil {
@@ -63,8 +85,12 @@ func main() {
 
 	failures := 0
 	for i, vecf32 := range vecf32List {
-		//sql := buildKnnQueryTemplate(vecf32, knnQueryOptions)
-		sql := buildKnnQueryTemplateWithIVFFlat(vecf32, knnQueryOptions)
+		var sql string
+		if withIndex {
+			sql = buildKnnQueryTemplateWithIVFFlat(vecf32, knnQueryOptions)
+		} else {
+			sql = buildKnnQueryTemplate(vecf32, knnQueryOptions)
+		}
 		actualIndexes, _, err := executeKnnQuery("a", sql)
 		if err != nil {
 			panic(err)
@@ -78,6 +104,7 @@ func main() {
 			fmt.Printf("\n")
 			failures++
 		}
+		break
 	}
 	fmt.Printf("total %v failures %v", len(vecf32List), failures)
 }
