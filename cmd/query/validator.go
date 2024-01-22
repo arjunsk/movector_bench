@@ -25,7 +25,7 @@ func configs(c config) (string, string, KnnQueryOptions) {
 			OrgTblIdName:     "a",
 			OrgTblPkName:     "__mo_fake_pk_col",
 			OrgTblVecIdxName: "idx5",
-			ProbeVal:         5,
+			ProbeVal:         10,
 			K:                100,
 			Normalize:        true,
 		}
