@@ -85,7 +85,7 @@ func main() {
 
 	failures := 0
 	for i, vecf32 := range vecf32List {
-		if i != 3 {
+		if i != 0 {
 			continue
 		}
 		var sql string
