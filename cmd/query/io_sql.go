@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/lib/pq"
 	"strings"
 	"time"
 )
@@ -38,7 +39,20 @@ func buildKnnQueryTemplate(inputVectorVal []float32, options KnnQueryOptions) st
 	return getOriginalTblVectorQuery
 }
 
-func buildKnnQueryTemplateWithIVFFlat(inputVectorVal []float32, options KnnQueryOptions) string {
+func buildKnnQueryTemplateWithIVFFlatPg(inputVectorVal []float32, options KnnQueryOptions) string {
+	orgTblName := options.OrgTblName
+	orgTblSkName := options.OrgTblSkName
+	orgTblIdName := options.OrgTblIdName
+	k := options.K
+	inputVectorStr := "[" + strings.Trim(strings.Replace(fmt.Sprint(inputVectorVal), " ", ", ", -1), "[]") + "]"
+
+	probeQuery := fmt.Sprintf("set ivfflat.probes=%d;\n", options.ProbeVal)
+	getOriginalTblVectorQuery := fmt.Sprintf("SELECT %s-1 FROM %s ORDER BY %s <-> '%s' ASC LIMIT %d", orgTblIdName, orgTblName, orgTblSkName, inputVectorStr, k)
+
+	return probeQuery + getOriginalTblVectorQuery
+}
+
+func buildKnnQueryTemplateWithIVFFlatMo(inputVectorVal []float32, options KnnQueryOptions, dbType string) string {
 	dbName := options.DbName
 	orgTblName := options.OrgTblName
 	orgTblSkName := options.OrgTblSkName
@@ -49,12 +63,12 @@ func buildKnnQueryTemplateWithIVFFlat(inputVectorVal []float32, options KnnQuery
 	k := options.K
 	inputVectorStr := "[" + strings.Trim(strings.Replace(fmt.Sprint(inputVectorVal), " ", ", ", -1), "[]") + "]"
 
-	idxMetadataTblName, idxCentroidsTblName, idxEntriesTblName, err := getIndexTables(dbName, orgTblVecIdxName, orgTblSkName)
+	idxMetadataTblName, idxCentroidsTblName, idxEntriesTblName, err := getIndexTables(dbType, dbName, orgTblVecIdxName, orgTblSkName)
 	if err != nil {
 		panic(err)
 	}
 
-	centroidVersion, err := getCurrentVersionFromMetadata(dbName, idxMetadataTblName)
+	centroidVersion, err := getCurrentVersionFromMetadata(dbType, dbName, idxMetadataTblName)
 	if err != nil {
 		panic(err)
 	}
@@ -75,11 +89,8 @@ func buildKnnQueryTemplateWithIVFFlat(inputVectorVal []float32, options KnnQuery
 	return getOriginalTblVectorQuery
 }
 
-func getIndexTables(dbName, orgTblVecIdxName, orgTblSkName string) (idxMetadataTblName, idxCentroidsTblName, idxEntriesTblName string, err error) {
-	dsn := fmt.Sprintf("root:111@tcp(127.0.0.1:6001)/%s", dbName)
-
-	// Open database connection
-	db, err := sql.Open("mysql", dsn)
+func getIndexTables(dbType, dbName, orgTblVecIdxName, orgTblSkName string) (idxMetadataTblName, idxCentroidsTblName, idxEntriesTblName string, err error) {
+	db, err := getDbConnection(dbType, dbName)
 	if err != nil {
 		return "", "", "", err
 	}
@@ -116,13 +127,29 @@ func getIndexTables(dbName, orgTblVecIdxName, orgTblSkName string) (idxMetadataT
 	return idxMetadataTblName, idxCentroidsTblName, idxEntriesTblName, nil
 }
 
-// getCurrentVersionFromMetadata retrieves the current version from the metadata table in the database
-func getCurrentVersionFromMetadata(dbName, idxMetadataTblName string) (version string, err error) {
-	// Database connection string (update with your credentials and host)
-	dsn := fmt.Sprintf("root:111@tcp(127.0.0.1:6001)/%s", dbName)
+func getDbConnection(dbType, dbName string) (*sql.DB, error) {
+	dbName = "postgres"
+	var db *sql.DB
+	var err error
 
-	// Open database connection
-	db, err := sql.Open("mysql", dsn)
+	switch dbType {
+	case "mysql":
+		dsn := fmt.Sprintf("root:111@tcp(127.0.0.1:6001)/%s", dbName)
+		db, err = sql.Open("mysql", dsn)
+	case "postgres":
+		dsn := fmt.Sprintf("postgres://postgres:111@localhost:5432/%s?sslmode=disable", dbName)
+		db, err = sql.Open("postgres", dsn)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+	return db, nil
+}
+
+// getCurrentVersionFromMetadata retrieves the current version from the metadata table in the database
+func getCurrentVersionFromMetadata(dbType, dbName, idxMetadataTblName string) (version string, err error) {
+	db, err := getDbConnection(dbType, dbName)
 	if err != nil {
 		return "", err
 	}
@@ -143,17 +170,14 @@ func getCurrentVersionFromMetadata(dbName, idxMetadataTblName string) (version s
 	return version, nil
 }
 
-func executeKnnQuery(dbName, query string) (res []int32, dur time.Duration, err error) {
-	beginTs := time.Now()
-	dsn := fmt.Sprintf("root:111@tcp(127.0.0.1:6001)/%s", dbName)
-
-	// Open database connection
-	db, err := sql.Open("mysql", dsn)
+func executeKnnQuery(dbType, dbName, query string) (res []int32, dur time.Duration, err error) {
+	db, err := getDbConnection(dbType, dbName)
 	if err != nil {
 		return nil, 0, err
 	}
 	defer db.Close()
 
+	beginTs := time.Now()
 	// Execute the query
 	rows, err := db.Query(query)
 	if err != nil {

@@ -59,7 +59,7 @@ func configs(c config) (string, string, KnnQueryOptions) {
 			OrgTblIdName:     "a",
 			OrgTblPkName:     "__mo_fake_pk_col",
 			OrgTblVecIdxName: "idx8",
-			ProbeVal:         1,
+			ProbeVal:         43,
 			K:                100,
 			Normalize:        true,
 		}
@@ -73,6 +73,7 @@ func configs(c config) (string, string, KnnQueryOptions) {
 func main() {
 	queryFilePath, expectedFilePath, knnQueryOptions := configs(million128)
 	withIndex := true
+	dbType := "postgres"
 
 	vecf32List, err := readFVecsFile(queryFilePath)
 	if err != nil {
@@ -90,11 +91,16 @@ func main() {
 		}
 		var sql string
 		if withIndex {
-			sql = buildKnnQueryTemplateWithIVFFlat(vecf32, knnQueryOptions)
+			switch dbType {
+			case "mysql":
+				sql = buildKnnQueryTemplateWithIVFFlatMo(vecf32, knnQueryOptions, dbType)
+			case "postgres":
+				sql = buildKnnQueryTemplateWithIVFFlatPg(vecf32, knnQueryOptions)
+			}
 		} else {
 			sql = buildKnnQueryTemplate(vecf32, knnQueryOptions)
 		}
-		actualIndexes, _, err := executeKnnQuery("a", sql)
+		actualIndexes, _, err := executeKnnQuery(dbType, "a", sql)
 		if err != nil {
 			panic(err)
 		}
