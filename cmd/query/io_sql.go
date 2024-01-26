@@ -128,7 +128,6 @@ func getIndexTables(dbType, dbName, orgTblVecIdxName, orgTblSkName string) (idxM
 }
 
 func getDbConnection(dbType, dbName string) (*sql.DB, error) {
-	dbName = "postgres"
 	var db *sql.DB
 	var err error
 

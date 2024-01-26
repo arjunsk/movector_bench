@@ -1,8 +1,6 @@
 package main
 
-import (
-	"fmt"
-)
+import "fmt"
 
 type config int
 
@@ -59,7 +57,7 @@ func configs(c config) (string, string, KnnQueryOptions) {
 			OrgTblIdName:     "a",
 			OrgTblPkName:     "__mo_fake_pk_col",
 			OrgTblVecIdxName: "idx8",
-			ProbeVal:         43,
+			ProbeVal:         32,
 			K:                100,
 			Normalize:        true,
 		}
@@ -73,7 +71,8 @@ func configs(c config) (string, string, KnnQueryOptions) {
 func main() {
 	queryFilePath, expectedFilePath, knnQueryOptions := configs(million128)
 	withIndex := true
-	dbType := "postgres"
+	dbType := "mysql"
+	knnQueryOptions.DbName = "a"
 
 	vecf32List, err := readFVecsFile(queryFilePath)
 	if err != nil {
@@ -84,11 +83,9 @@ func main() {
 		panic(err)
 	}
 
-	failures := 0
+	recall := float32(0)
+	count := float32(0)
 	for i, vecf32 := range vecf32List {
-		if i != 0 {
-			continue
-		}
 		var sql string
 		if withIndex {
 			switch dbType {
@@ -100,32 +97,32 @@ func main() {
 		} else {
 			sql = buildKnnQueryTemplate(vecf32, knnQueryOptions)
 		}
-		actualIndexes, _, err := executeKnnQuery(dbType, "a", sql)
+		actualIndexes, _, err := executeKnnQuery(dbType, knnQueryOptions.DbName, sql)
 		if err != nil {
 			panic(err)
 		}
 		expectedIndexes := expectedSliceList[i]
 
-		if !compareIndexSlice(expectedIndexes, actualIndexes) {
-			fmt.Printf("query %v\n", sql)
-			fmt.Printf("exp %v\n", expectedIndexes)
-			fmt.Printf("got %v\n", actualIndexes)
-			fmt.Printf("\n")
-			failures++
-		}
-		break
+		recall += compareIndexSlice(expectedIndexes, actualIndexes)
+		count++
+		//if compareIndexSlice(expectedIndexes, actualIndexes) {
+		//	fmt.Printf("query %v\n", sql)
+		//	fmt.Printf("exp %v\n", expectedIndexes)
+		//	fmt.Printf("got %v\n", actualIndexes)
+		//	fmt.Printf("\n")
+		//	failures++
+		//}
+		//break
+		fmt.Printf("total %v recall %v \n", count, recall/count)
 	}
-	fmt.Printf("total %v failures %v", len(vecf32List), failures)
 }
 
-func compareIndexSlice(expected, actual []int32) bool {
-	if len(expected) != len(actual) {
-		return false
-	}
+func compareIndexSlice(expected, actual []int32) float32 {
+	equalVal := float32(0)
 	for i, v := range expected {
-		if v != actual[i] {
-			return false
+		if v == actual[i] {
+			equalVal++
 		}
 	}
-	return true
+	return equalVal / float32(len(expected))
 }
