@@ -33,12 +33,12 @@ func configs(c config) (string, string, KnnQueryOptions) {
 		expectedFilePath = "/Users/arjunsunilkumar/Downloads/benchmark/1million/gist/gist_groundtruth.ivecs"
 		knnQueryOptions = KnnQueryOptions{
 			DbName:           "a",
-			OrgTblName:       "t2",
+			OrgTblName:       "t4",
 			OrgTblSkName:     "b",
 			OrgTblIdName:     "a",
 			OrgTblPkName:     "__mo_fake_pk_col",
 			OrgTblVecIdxName: "idx6",
-			ProbeVal:         10,
+			ProbeVal:         32,
 			K:                100,
 			Normalize:        true,
 
@@ -52,13 +52,13 @@ func configs(c config) (string, string, KnnQueryOptions) {
 		expectedFilePath = "/Users/arjunsunilkumar/Downloads/benchmark/1million128/sift/sift_groundtruth.ivecs"
 		knnQueryOptions = KnnQueryOptions{
 			DbName:           "a",
-			OrgTblName:       "t3",
+			OrgTblName:       "t4",
 			OrgTblSkName:     "b",
 			OrgTblIdName:     "a",
 			OrgTblPkName:     "__mo_fake_pk_col",
 			OrgTblVecIdxName: "idx8",
-			ProbeVal:         32,
-			K:                100,
+			ProbeVal:         5,
+			K:                10,
 			Normalize:        true,
 		}
 
