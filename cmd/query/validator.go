@@ -97,6 +97,7 @@ func main() {
 		} else {
 			sql = buildKnnQueryTemplate(vecf32, knnQueryOptions)
 		}
+		//println(sql)
 		actualIndexes, _, err := executeKnnQuery(dbType, knnQueryOptions.DbName, sql)
 		if err != nil {
 			panic(err)
