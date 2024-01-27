@@ -119,10 +119,10 @@ func main() {
 
 func compareIndexSlice(expected, actual []int32) float32 {
 	equalVal := float32(0)
-	for i, v := range expected {
-		if v == actual[i] {
+	for i, v := range actual {
+		if v == expected[i] {
 			equalVal++
 		}
 	}
-	return equalVal / float32(len(expected))
+	return equalVal / float32(len(actual))
 }
