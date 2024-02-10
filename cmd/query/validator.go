@@ -52,7 +52,7 @@ func configs(c config) (string, string, KnnQueryOptions) {
 		expectedFilePath = "/Users/arjunsunilkumar/Downloads/benchmark/1million128/sift/sift_groundtruth.ivecs"
 		knnQueryOptions = KnnQueryOptions{
 			DbName:           "a",
-			OrgTblName:       "t4",
+			OrgTblName:       "t3",
 			OrgTblSkName:     "b",
 			OrgTblIdName:     "a",
 			OrgTblPkName:     "__mo_fake_pk_col",
@@ -70,7 +70,6 @@ func configs(c config) (string, string, KnnQueryOptions) {
 
 func main() {
 	queryFilePath, expectedFilePath, knnQueryOptions := configs(million128)
-	withIndex := true
 	dbType := "mysql"
 	knnQueryOptions.DbName = "a"
 
@@ -87,15 +86,11 @@ func main() {
 	count := float32(0)
 	for i, vecf32 := range vecf32List {
 		var sql string
-		if withIndex {
-			switch dbType {
-			case "mysql":
-				sql = buildKnnQueryTemplateWithIVFFlatMo(vecf32, knnQueryOptions, dbType)
-			case "postgres":
-				sql = buildKnnQueryTemplateWithIVFFlatPg(vecf32, knnQueryOptions)
-			}
-		} else {
-			sql = buildKnnQueryTemplate(vecf32, knnQueryOptions)
+		switch dbType {
+		case "mysql":
+			sql = buildKnnQueryTemplateWithIVFFlatMo(vecf32, knnQueryOptions)
+		case "postgres":
+			sql = buildKnnQueryTemplateWithIVFFlatPg(vecf32, knnQueryOptions)
 		}
 		//println(sql)
 		actualIndexes, _, err := executeKnnQuery(dbType, knnQueryOptions.DbName, sql)
