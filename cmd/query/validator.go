@@ -57,8 +57,8 @@ func configs(c config) (string, string, KnnQueryOptions) {
 			OrgTblIdName:     "a",
 			OrgTblPkName:     "__mo_fake_pk_col",
 			OrgTblVecIdxName: "idx8",
-			ProbeVal:         5,
-			K:                10,
+			ProbeVal:         32,
+			K:                100,
 			Normalize:        true,
 		}
 
@@ -101,14 +101,13 @@ func main() {
 
 		recall += compareIndexSlice(expectedIndexes, actualIndexes)
 		count++
-		//if compareIndexSlice(expectedIndexes, actualIndexes) {
-		//	fmt.Printf("query %v\n", sql)
-		//	fmt.Printf("exp %v\n", expectedIndexes)
-		//	fmt.Printf("got %v\n", actualIndexes)
-		//	fmt.Printf("\n")
-		//	failures++
-		//}
+
+		//fmt.Printf("query %v\n", sql)
+		//fmt.Printf("exp %v\n", expectedIndexes)
+		//fmt.Printf("got %v\n", actualIndexes)
+		//fmt.Printf("\n")
 		//break
+
 		fmt.Printf("total %v recall %v \n", count, recall/count)
 	}
 }
