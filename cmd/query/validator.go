@@ -38,7 +38,7 @@ func configs(c config) (string, string, KnnQueryOptions) {
 
 func main() {
 	queryFilePath, expectedFilePath, knnQueryOptions := configs(million128)
-	dbType := "mysql"
+	dbType := "postgres"
 
 	vecf32List, err := readFVecsFile(queryFilePath)
 	if err != nil {
@@ -58,6 +58,7 @@ func main() {
 		case "mysql":
 			sql = buildKnnQueryTemplateWithIVFFlatMo(vecf32, knnQueryOptions)
 		case "postgres":
+			knnQueryOptions.DbName = "postgres"
 			sql = buildKnnQueryTemplateWithIVFFlatPg(vecf32, knnQueryOptions)
 		}
 
