@@ -72,14 +72,14 @@ func main() {
 		totalRecall += compareIndexSlice(expectedIndexes, actualIndexes)
 		totalCount++
 
-		if i == 3 {
-			fmt.Printf(sql)
-			fmt.Printf("query %v\n", sql)
-			fmt.Printf("exp %v\n", expectedIndexes)
-			fmt.Printf("got %v\n", actualIndexes)
-			fmt.Printf("\n")
-			break
-		}
+		//if i == 3 {
+		//	fmt.Printf("query %v\n", sql)
+		//	fmt.Printf("query %v\n", sql)
+		//	fmt.Printf("exp %v\n", expectedIndexes)
+		//	fmt.Printf("got %v\n", actualIndexes)
+		//	fmt.Printf("\n")
+		//	break
+		//}
 
 		fmt.Printf("total %v recall %v duration %v qps %v\n", totalCount, totalRecall/totalCount,
 			totalDuration, totalCount/float32(totalDuration.Seconds()))

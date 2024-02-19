@@ -39,9 +39,10 @@ func buildKnnQueryTemplateWithIVFFlatMo(inputVectorVal []float32, options KnnQue
 	k := options.K
 	inputVectorStr := "[" + strings.Trim(strings.Replace(fmt.Sprint(inputVectorVal), " ", ", ", -1), "[]") + "]"
 
-	getOriginalTblVectorQuery := fmt.Sprintf("SELECT %s FROM %s ORDER BY l2_distance(%s,'%s') ASC LIMIT %d", orgTblIdName, orgTblName, orgTblSkName, inputVectorStr, k)
+	probeQuery := fmt.Sprintf("set @probe_limit=%d;\n", options.ProbeVal)
+	getOriginalTblVectorQuery := fmt.Sprintf("SELECT %s FROM %s ORDER BY l2_distance(%s,'%s') ASC LIMIT %d;", orgTblIdName, orgTblName, orgTblSkName, inputVectorStr, k)
 
-	return getOriginalTblVectorQuery
+	return probeQuery + getOriginalTblVectorQuery
 }
 
 func getDbConnection(dbType, dbName string) (*sql.DB, error) {
