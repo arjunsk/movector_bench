@@ -14,7 +14,6 @@ type KnnQueryOptions struct {
 	OrgTblName       string
 	OrgTblSkName     string
 	OrgTblIdName     string
-	OrgTblPkName     string
 	OrgTblVecIdxName string
 	ProbeVal         int
 	K                int
@@ -78,8 +77,9 @@ func executeKnnQuery(dbType, dbName, query string) (res []int32, dur time.Durati
 	defer db.Close()
 
 	beginTs := time.Now()
-	// Execute the query
 	rows, err := db.Query(query)
+	duration := time.Since(beginTs)
+
 	if err != nil {
 		return nil, 0, err
 	}
@@ -100,5 +100,5 @@ func executeKnnQuery(dbType, dbName, query string) (res []int32, dur time.Durati
 		return nil, 0, err
 	}
 
-	return results, time.Since(beginTs), nil
+	return results, duration, nil
 }

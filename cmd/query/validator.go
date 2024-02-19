@@ -1,62 +1,31 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+)
 
 type config int
 
 const (
-	tenK config = iota
-	million128
-	million1k
+	million128 config = iota
 )
 
 func configs(c config) (string, string, KnnQueryOptions) {
+
 	var queryFilePath, expectedFilePath string
 	var knnQueryOptions KnnQueryOptions
-	switch c {
-	case tenK:
-		queryFilePath = "/Users/arjunsunilkumar/Downloads/benchmark/10k/siftsmall/siftsmall_query.fvecs"
-		expectedFilePath = "/Users/arjunsunilkumar/Downloads/benchmark/10k/siftsmall/siftsmall_groundtruth.ivecs"
-		knnQueryOptions = KnnQueryOptions{
-			DbName:           "a",
-			OrgTblName:       "t1",
-			OrgTblSkName:     "b",
-			OrgTblIdName:     "a",
-			OrgTblPkName:     "__mo_fake_pk_col",
-			OrgTblVecIdxName: "idx5",
-			ProbeVal:         3,
-			K:                100,
-			Normalize:        true,
-		}
-	case million1k:
-		queryFilePath = "/Users/arjunsunilkumar/Downloads/benchmark/1million/gist/gist_query.fvecs"
-		expectedFilePath = "/Users/arjunsunilkumar/Downloads/benchmark/1million/gist/gist_groundtruth.ivecs"
-		knnQueryOptions = KnnQueryOptions{
-			DbName:           "a",
-			OrgTblName:       "t4",
-			OrgTblSkName:     "b",
-			OrgTblIdName:     "a",
-			OrgTblPkName:     "__mo_fake_pk_col",
-			OrgTblVecIdxName: "idx6",
-			ProbeVal:         32,
-			K:                100,
-			Normalize:        true,
 
-			OverrideIndexTables: true,
-			MetadataTableName:   "__mo_index_secondary_018d2a69-37b7-77a1-8387-72d82c3e62d7",
-			CentroidsTableName:  "__mo_index_secondary_018d2a69-37b7-7e44-a218-5c5664d1a932",
-			EntriesTableName:    "__mo_index_secondary_018d2a69-37b7-7b52-8eaf-46847ebafad9",
-		}
+	switch c {
 	case million128:
 		queryFilePath = "/Users/arjunsunilkumar/Downloads/benchmark/1million128/sift/sift_query.fvecs"
 		expectedFilePath = "/Users/arjunsunilkumar/Downloads/benchmark/1million128/sift/sift_groundtruth.ivecs"
 		knnQueryOptions = KnnQueryOptions{
 			DbName:           "a",
 			OrgTblName:       "t3",
-			OrgTblSkName:     "b",
 			OrgTblIdName:     "a",
-			OrgTblPkName:     "__mo_fake_pk_col",
-			OrgTblVecIdxName: "idx8",
+			OrgTblSkName:     "b",
+			OrgTblVecIdxName: "idx3",
 			ProbeVal:         32,
 			K:                100,
 			Normalize:        true,
@@ -71,7 +40,6 @@ func configs(c config) (string, string, KnnQueryOptions) {
 func main() {
 	queryFilePath, expectedFilePath, knnQueryOptions := configs(million128)
 	dbType := "mysql"
-	knnQueryOptions.DbName = "a"
 
 	vecf32List, err := readFVecsFile(queryFilePath)
 	if err != nil {
@@ -82,6 +50,7 @@ func main() {
 		panic(err)
 	}
 
+	var duration time.Duration
 	recall := float32(0)
 	count := float32(0)
 	for i, vecf32 := range vecf32List {
@@ -92,8 +61,10 @@ func main() {
 		case "postgres":
 			sql = buildKnnQueryTemplateWithIVFFlatPg(vecf32, knnQueryOptions)
 		}
-		//println(sql)
-		actualIndexes, _, err := executeKnnQuery(dbType, knnQueryOptions.DbName, sql)
+
+		actualIndexes, currDur, err := executeKnnQuery(dbType, knnQueryOptions.DbName, sql)
+		duration += currDur
+
 		if err != nil {
 			panic(err)
 		}
@@ -102,13 +73,14 @@ func main() {
 		recall += compareIndexSlice(expectedIndexes, actualIndexes)
 		count++
 
+		//fmt.Printf(sql)
 		//fmt.Printf("query %v\n", sql)
 		//fmt.Printf("exp %v\n", expectedIndexes)
 		//fmt.Printf("got %v\n", actualIndexes)
 		//fmt.Printf("\n")
 		//break
 
-		fmt.Printf("total %v recall %v \n", count, recall/count)
+		fmt.Printf("total %v recall %v qps %v\n", count, recall/count, duration.Seconds()/float64(count))
 	}
 }
 
