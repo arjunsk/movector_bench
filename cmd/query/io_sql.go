@@ -76,10 +76,6 @@ func closeDB() {
 }
 
 func executeKnnQuery(query string) (res []int32, dur time.Duration, err error) {
-	if err != nil {
-		return nil, 0, err
-	}
-
 	beginTs := time.Now()
 	rows, err := db.Query(query)
 	duration := time.Since(beginTs)

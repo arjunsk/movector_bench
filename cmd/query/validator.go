@@ -38,7 +38,7 @@ func configs(c config) (string, string, KnnQueryOptions) {
 
 func main() {
 	queryFilePath, expectedFilePath, knnQueryOptions := configs(million128)
-	dbType := "postgres"
+	dbType := "mysql"
 
 	vecf32List, err := readFVecsFile(queryFilePath)
 	if err != nil {
