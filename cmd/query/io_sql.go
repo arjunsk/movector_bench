@@ -19,6 +19,10 @@ type KnnQueryOptions struct {
 	K                int
 }
 
+var (
+	db *sql.DB
+)
+
 func buildKnnQueryTemplateWithIVFFlatPg(inputVectorVal []float32, options KnnQueryOptions) string {
 	orgTblName := options.OrgTblName
 	orgTblSkName := options.OrgTblSkName
@@ -45,8 +49,8 @@ func buildKnnQueryTemplateWithIVFFlatMo(inputVectorVal []float32, options KnnQue
 	return probeQuery + getOriginalTblVectorQuery
 }
 
-func getDbConnection(dbType, dbName string) (*sql.DB, error) {
-	var db *sql.DB
+func initDb(dbType, dbName string) error {
+
 	var err error
 
 	switch dbType {
@@ -59,17 +63,22 @@ func getDbConnection(dbType, dbName string) (*sql.DB, error) {
 	}
 
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return db, nil
+	return nil
+}
+
+func closeDB() {
+	err := db.Close()
+	if err != nil {
+		panic(err)
+	}
 }
 
 func executeKnnQuery(dbType, dbName, query string) (res []int32, dur time.Duration, err error) {
-	db, err := getDbConnection(dbType, dbName)
 	if err != nil {
 		return nil, 0, err
 	}
-	defer db.Close()
 
 	beginTs := time.Now()
 	rows, err := db.Query(query)

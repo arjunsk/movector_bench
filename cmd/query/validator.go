@@ -52,13 +52,23 @@ func main() {
 	var totalDuration time.Duration
 	totalRecall := float32(0)
 	totalCount := float32(0)
+
+	switch dbType {
+	case "mysql":
+	case "postgres":
+		knnQueryOptions.DbName = "postgres"
+	}
+	err = initDb(dbType, knnQueryOptions.DbName)
+	if err != nil {
+		panic(err)
+	}
+
 	for i, vecf32 := range vecf32List {
 		var sql string
 		switch dbType {
 		case "mysql":
 			sql = buildKnnQueryTemplateWithIVFFlatMo(vecf32, knnQueryOptions)
 		case "postgres":
-			knnQueryOptions.DbName = "postgres"
 			sql = buildKnnQueryTemplateWithIVFFlatPg(vecf32, knnQueryOptions)
 		}
 
@@ -85,6 +95,8 @@ func main() {
 		fmt.Printf("total %v recall %v duration %v qps %v\n", totalCount, totalRecall/totalCount,
 			totalDuration, totalCount/float32(totalDuration.Seconds()))
 	}
+
+	closeDB()
 }
 
 func compareIndexSlice(expected, actual []int32) float32 {
