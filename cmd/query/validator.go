@@ -50,9 +50,9 @@ func main() {
 		panic(err)
 	}
 
-	var duration time.Duration
-	recall := float32(0)
-	count := float32(0)
+	var totalDuration time.Duration
+	totalRecall := float32(0)
+	totalCount := float32(0)
 	for i, vecf32 := range vecf32List {
 		var sql string
 		switch dbType {
@@ -63,15 +63,15 @@ func main() {
 		}
 
 		actualIndexes, currDur, err := executeKnnQuery(dbType, knnQueryOptions.DbName, sql)
-		duration += currDur
+		totalDuration += currDur
 
 		if err != nil {
 			panic(err)
 		}
 		expectedIndexes := expectedSliceList[i]
 
-		recall += compareIndexSlice(expectedIndexes, actualIndexes)
-		count++
+		totalRecall += compareIndexSlice(expectedIndexes, actualIndexes)
+		totalCount++
 
 		//fmt.Printf(sql)
 		//fmt.Printf("query %v\n", sql)
@@ -80,7 +80,7 @@ func main() {
 		//fmt.Printf("\n")
 		//break
 
-		fmt.Printf("total %v recall %v qps %v\n", count, recall/count, duration.Seconds()/float64(count))
+		fmt.Printf("total %v recall %v qps %v\n", totalCount, totalRecall/totalCount, totalCount/float32(totalDuration.Seconds()))
 	}
 }
 
