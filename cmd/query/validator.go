@@ -73,7 +73,7 @@ func main() {
 		}
 
 		start := time.Now()
-		actualIndexes, _, err := executeKnnQuery(sql)
+		actualIndexes, err := executeKnnQuery(sql)
 		totalDuration += time.Since(start)
 
 		if err != nil {

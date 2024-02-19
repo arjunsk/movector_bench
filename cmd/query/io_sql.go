@@ -6,7 +6,6 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
 	"strings"
-	"time"
 )
 
 type KnnQueryOptions struct {
@@ -75,13 +74,11 @@ func closeDB() {
 	}
 }
 
-func executeKnnQuery(query string) (res []int32, dur time.Duration, err error) {
-	beginTs := time.Now()
+func executeKnnQuery(query string) (res []int32, err error) {
 	rows, err := db.Query(query)
-	duration := time.Since(beginTs)
 
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 	defer rows.Close()
 
@@ -90,15 +87,15 @@ func executeKnnQuery(query string) (res []int32, dur time.Duration, err error) {
 	for rows.Next() {
 		var id int32
 		if err := rows.Scan(&id); err != nil {
-			return nil, 0, err
+			return nil, err
 		}
 		results = append(results, id)
 	}
 
 	// Check for errors from iterating over rows
 	if err = rows.Err(); err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
-	return results, duration, nil
+	return results, nil
 }
