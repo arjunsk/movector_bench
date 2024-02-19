@@ -17,12 +17,6 @@ type KnnQueryOptions struct {
 	OrgTblVecIdxName string
 	ProbeVal         int
 	K                int
-	Normalize        bool
-
-	OverrideIndexTables bool
-	MetadataTableName   string
-	CentroidsTableName  string
-	EntriesTableName    string
 }
 
 func buildKnnQueryTemplateWithIVFFlatPg(inputVectorVal []float32, options KnnQueryOptions) string {

@@ -28,7 +28,6 @@ func configs(c config) (string, string, KnnQueryOptions) {
 			OrgTblVecIdxName: "idx3",
 			ProbeVal:         32,
 			K:                100,
-			Normalize:        true,
 		}
 
 	default:
@@ -73,14 +72,17 @@ func main() {
 		totalRecall += compareIndexSlice(expectedIndexes, actualIndexes)
 		totalCount++
 
-		//fmt.Printf(sql)
-		//fmt.Printf("query %v\n", sql)
-		//fmt.Printf("exp %v\n", expectedIndexes)
-		//fmt.Printf("got %v\n", actualIndexes)
-		//fmt.Printf("\n")
-		//break
+		if i == 3 {
+			fmt.Printf(sql)
+			fmt.Printf("query %v\n", sql)
+			fmt.Printf("exp %v\n", expectedIndexes)
+			fmt.Printf("got %v\n", actualIndexes)
+			fmt.Printf("\n")
+			break
+		}
 
-		fmt.Printf("total %v recall %v qps %v\n", totalCount, totalRecall/totalCount, totalCount/float32(totalDuration.Seconds()))
+		fmt.Printf("total %v recall %v duration %v qps %v\n", totalCount, totalRecall/totalCount,
+			totalDuration, totalCount/float32(totalDuration.Seconds()))
 	}
 }
 
