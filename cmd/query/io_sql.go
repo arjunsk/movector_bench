@@ -74,7 +74,7 @@ func closeDB() {
 	}
 }
 
-func executeKnnQuery(query string) (res []int32, err error) {
+func executeKnnQuery(query string, k int32) (res []int32, err error) {
 	rows, err := db.Query(query)
 
 	if err != nil {
@@ -83,13 +83,15 @@ func executeKnnQuery(query string) (res []int32, err error) {
 	defer rows.Close()
 
 	// Iterate through the result set and collect the results
-	var results []int32
+	var results = make([]int32, k)
+	i := 0
 	for rows.Next() {
 		var id int32
 		if err := rows.Scan(&id); err != nil {
 			return nil, err
 		}
-		results = append(results, id)
+		results[i] = id
+		i++
 	}
 
 	// Check for errors from iterating over rows
