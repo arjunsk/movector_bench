@@ -72,7 +72,7 @@ func main() {
 			sql = buildKnnQueryTemplateWithIVFFlatPg(vecf32, knnQueryOptions)
 		}
 
-		actualIndexes, currDur, err := executeKnnQuery(dbType, knnQueryOptions.DbName, sql)
+		actualIndexes, currDur, err := executeKnnQuery(sql)
 		totalDuration += currDur
 
 		if err != nil {
